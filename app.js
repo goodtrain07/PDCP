@@ -409,73 +409,101 @@
             }
         });
 
-        document.getElementById('btn-open-admin').addEventListener('click', () => admin.open());
+        // 教官後台密碼登入視窗
+        const loginDialog = document.getElementById('login-dialog');
+        const passwordInput = document.getElementById('admin-password-input');
+        const loginStatusBox = document.getElementById('login-status-box');
+        const btnConfirmLogin = document.getElementById('btn-confirm-login');
+
+        function setLoginStatus(msg, type = '') {
+            loginStatusBox.textContent = msg;
+            loginStatusBox.className = `publish-status-box ${type}`;
+        }
+
+        function openLoginDialog() {
+            passwordInput.value = '';
+            setLoginStatus('', '');
+            loginDialog.classList.add('open');
+            setTimeout(() => passwordInput.focus(), 50);
+        }
+
+        function closeLoginDialog() {
+            loginDialog.classList.remove('open');
+            passwordInput.value = '';
+        }
+
+        async function handleAdminLogin() {
+            const pwd = passwordInput.value;
+            if (!pwd) {
+                setLoginStatus('❌ 請輸入教官密碼！', 'error');
+                return;
+            }
+            btnConfirmLogin.disabled = true;
+            setLoginStatus('⏳ 驗證密碼並解鎖安全保險箱...', 'info');
+            try {
+                await window.PDCPGitHubSync.unlockWithPassword(pwd);
+                closeLoginDialog();
+                admin.open();
+                admin.showToast('🔓 教官後台已解鎖！修改完成可直接點「☁️ 發布到網路」。');
+            } catch (err) {
+                setLoginStatus(`❌ ${err.message}`, 'error');
+                passwordInput.select();
+            } finally {
+                btnConfirmLogin.disabled = false;
+            }
+        }
+
+        document.getElementById('btn-open-admin').addEventListener('click', () => {
+            if (window.PDCPGitHubSync.isUnlocked()) {
+                admin.open();
+            } else {
+                openLoginDialog();
+            }
+        });
+        document.getElementById('btn-close-login').addEventListener('click', closeLoginDialog);
+        document.getElementById('btn-cancel-login').addEventListener('click', closeLoginDialog);
+        loginDialog.addEventListener('click', (e) => {
+            if (e.target === loginDialog) closeLoginDialog();
+        });
+        btnConfirmLogin.addEventListener('click', handleAdminLogin);
+        passwordInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAdminLogin();
+            }
+        });
+
         document.getElementById('btn-close-admin').addEventListener('click', () => admin.close());
+        document.getElementById('btn-admin-logout').addEventListener('click', () => {
+            window.PDCPGitHubSync.lock();
+            admin.close();
+            updateStatusBar('🔒 已登出並鎖定教官後台。', 'normal');
+        });
         document.getElementById('btn-admin-add').addEventListener('click', () => admin.addScenario());
         document.getElementById('btn-admin-save').addEventListener('click', () => admin.commitSave());
         document.getElementById('btn-admin-export').addEventListener('click', () => admin.exportJson());
         document.getElementById('btn-admin-reset-default').addEventListener('click', () => admin.handleResetDefault());
 
-        // GitHub 雲端發布彈窗邏輯
-        const publishDialog = document.getElementById('publish-dialog');
-        const ghOwnerInput = document.getElementById('gh-owner');
-        const ghRepoInput = document.getElementById('gh-repo');
-        const ghBranchInput = document.getElementById('gh-branch');
-        const ghPathInput = document.getElementById('gh-path');
-        const ghTokenInput = document.getElementById('gh-token');
-        const publishStatusBox = document.getElementById('publish-status-box');
-        const btnConfirmPublish = document.getElementById('btn-gh-confirm-publish');
-
-        function setPublishStatus(msg, type = '') {
-            publishStatusBox.textContent = msg;
-            publishStatusBox.className = `publish-status-box ${type}`;
-        }
-
-        function openPublishDialog() {
+        // 一鍵發布到網路（免填任何設定，直接同步到 GitHub）
+        const btnPublish = document.getElementById('btn-admin-publish');
+        btnPublish.addEventListener('click', async () => {
+            if (!window.PDCPGitHubSync.isUnlocked()) {
+                openLoginDialog();
+                return;
+            }
             admin.commitSave();
-            const cfg = window.PDCPGitHubSync.loadConfig();
-            ghOwnerInput.value = cfg.owner;
-            ghRepoInput.value = cfg.repo;
-            ghBranchInput.value = cfg.branch;
-            ghPathInput.value = cfg.filePath;
-            ghTokenInput.value = cfg.token;
-            setPublishStatus('', '');
-            publishDialog.classList.add('open');
-        }
-
-        document.getElementById('btn-admin-publish').addEventListener('click', openPublishDialog);
-        document.getElementById('btn-close-publish').addEventListener('click', () => {
-            publishDialog.classList.remove('open');
-        });
-        publishDialog.addEventListener('click', (e) => {
-            if (e.target === publishDialog) publishDialog.classList.remove('open');
-        });
-
-        document.getElementById('btn-gh-clear-token').addEventListener('click', () => {
-            window.PDCPGitHubSync.clearToken();
-            ghTokenInput.value = '';
-            setPublishStatus('🗑️ 已清除此裝置儲存的 GitHub 金鑰。', 'info');
-        });
-
-        btnConfirmPublish.addEventListener('click', async () => {
-            const cfg = {
-                owner: ghOwnerInput.value,
-                repo: ghRepoInput.value,
-                branch: ghBranchInput.value,
-                filePath: ghPathInput.value,
-                token: ghTokenInput.value
-            };
-            btnConfirmPublish.disabled = true;
-            setPublishStatus('⏳ 正在上傳最新題庫至 GitHub，請稍候...', 'info');
+            const originalText = btnPublish.textContent;
+            btnPublish.disabled = true;
+            btnPublish.textContent = '⏳ 發布中...';
             try {
-                await window.PDCPGitHubSync.publishScenarios(admin.draftScenarios, cfg);
+                await window.PDCPGitHubSync.publishScenarios(admin.draftScenarios);
                 saveScenariosToStorage(JSON.parse(JSON.stringify(admin.draftScenarios)), false);
-                setPublishStatus('✅ 發布成功！題庫已寫入 GitHub，約 30 秒內所有手機重新整理網頁即可同步最新演練！', 'success');
-                admin.showToast('☁️ 已成功發布到 GitHub！');
+                admin.showToast('✅ 發布成功！約 30 秒內所有手機重整網頁即可同步最新演練！');
             } catch (err) {
-                setPublishStatus(`❌ ${err.message}`, 'error');
+                admin.showToast(`❌ ${err.message}`, true);
             } finally {
-                btnConfirmPublish.disabled = false;
+                btnPublish.disabled = false;
+                btnPublish.textContent = originalText;
             }
         });
 
