@@ -1,0 +1,189 @@
+/**
+ * 文湖線月台門訓練機 (PDCP) — 預設劇本資料
+ * 本檔案作為本機離線開啟 (file://) 時的預設題庫，與 scenarios.json 保持一致。
+ */
+
+window.PDCP_DEFAULT_SCENARIOS = [
+    {
+        id: 'door2_bypass',
+        title: '操作 1：2號月台門故障 (燈滅旁通)',
+        description: '⚠️ [操作 1] 2號月台門故障，閉鎖燈號已熄滅！請依 SOP 進行旁通讓列車離站。',
+        successMessage: '✅ [操作成功] 列車已安全離站！請依 SOP 復原面板狀態。',
+        initialLights: {
+            door_2_close: 'off',
+            all_asd_close: 'off'
+        },
+        steps: [
+            {
+                id: 's1_1',
+                title: '切換鑰匙至手動，並開啟 SD Bypass 旋鈕',
+                type: 'state_match',
+                conditions: [
+                    { controlId: 'key_mode', value: 'on' },
+                    { controlId: 'sd_bypass_knob', value: 'on' }
+                ],
+                successMessage: '🔧 [步驟 1 正確] 鑰匙已切手動且 SD 旋鈕已轉至 ON，請持續按壓黃色 SD Bypass 按鈕 3 秒！',
+                wrongActionHint: '❌ [錯誤] 請先將鑰匙切換至「手動 (MANUAL)」，並開啟「SD Bypass 紅旋鈕」！',
+                lightChanges: {}
+            },
+            {
+                id: 's1_2',
+                title: '持續按壓 SD Bypass 按鈕 3 秒',
+                type: 'hold',
+                controlId: 'sd_bypass_btn',
+                durationSec: 3,
+                holdingMessage: '🚄 [正確] 持續按壓 SD Bypass... 列車離站中 (請按住不放！)',
+                releaseEarlyMessage: '❌ [操作失敗] 列車未完全離站即放開壓扣！列車急停，請重新長按。',
+                successMessage: '✅ [操作成功] 列車已安全離站！請依 SOP 復原面板狀態。',
+                wrongActionHint: '❌ [錯誤] 請持續按壓底部黃色「SD Bypass 按鈕」3 秒！',
+                lightChanges: {}
+            }
+        ]
+    },
+    {
+        id: 'ems_bypass',
+        title: '操作 2：緊急門 EMS 作動 (燈滅旁通)',
+        description: '⚠️ [操作 2] 緊急門 EMS (1-20) 作動，燈號已熄滅！請先測試燈號再進行旁通。',
+        successMessage: '✅ [操作成功] 列車已安全離站！請依 SOP 復原面板狀態。',
+        initialLights: {
+            ems_1_20: 'off'
+        },
+        steps: [
+            {
+                id: 's2_1',
+                title: '執行燈號測試 (Lamp Test)',
+                type: 'action',
+                controlId: 'lamp_test',
+                successMessage: '💡 [步驟 1 正確] Lamp Test 完畢，確認為真實故障！請持續按壓紅色 ED Bypass 按鈕 3 秒。',
+                wrongActionHint: '❌ [錯誤] 旁通前，請先執行「燈號測試鈕 (LAMP TEST)」確認非燈泡故障！',
+                lightChanges: {}
+            },
+            {
+                id: 's2_2',
+                title: '持續按壓 ED Bypass 按鈕 3 秒',
+                type: 'hold',
+                controlId: 'ed_bypass_btn',
+                durationSec: 3,
+                holdingMessage: '🚄 [正確] 持續按壓 ED Bypass... 列車離站中 (請按住不放！)',
+                releaseEarlyMessage: '❌ [操作失敗] 列車未完全離站即放開壓扣！列車急停，請重新長按。',
+                successMessage: '✅ [操作成功] 列車已安全離站！請依 SOP 復原面板狀態。',
+                wrongActionHint: '❌ [錯誤] 請持續按壓左下角紅色「ED Bypass 按鈕」3 秒！',
+                lightChanges: {}
+            }
+        ]
+    },
+    {
+        id: 'manual_door',
+        title: '操作 3：列車停妥手動開啟/關閉全部月台門',
+        description: '⚠️ [操作 3] 列車已停妥。請切換手動開啟全部月台門，警示後再關閉月台門。',
+        successMessage: '✅ [操作成功] 車門已順利關閉，操作 3 結束！請復原系統。',
+        initialLights: {},
+        steps: [
+            {
+                id: 's3_1',
+                title: '將鑰匙切換至手動模式 (MANUAL)',
+                type: 'state_match',
+                conditions: [
+                    { controlId: 'key_mode', value: 'on' }
+                ],
+                successMessage: '🔧 [步驟 1 正確] 鑰匙已切換至手動。請同時轉動旋鈕 1、旋鈕 2 開啟車門。',
+                wrongActionHint: '❌ [錯誤] 開門前，必須先將鑰匙轉至「手動 (MANUAL)」模式！',
+                lightChanges: {}
+            },
+            {
+                id: 's3_2',
+                title: '同時轉動旋鈕 1 與旋鈕 2 開啟月台門',
+                type: 'state_match',
+                conditions: [
+                    { controlId: 'knob_cmd_1', value: 'on' },
+                    { controlId: 'knob_cmd_2', value: 'on' }
+                ],
+                successMessage: '✅ [步驟 2 正確] 月台門已全數開啟！關門前請按壓按鈕 3 (蜂鳴器) 警告旅客。',
+                wrongActionHint: '❌ [錯誤] 請同時將「旋鈕 1」與「旋鈕 2」轉至開啟位置！',
+                lightChanges: {
+                    door_1_close: 'off',
+                    door_2_close: 'off',
+                    door_3_close: 'off',
+                    door_4_close: 'off',
+                    door_5_close: 'off',
+                    door_6_close: 'off',
+                    door_7_close: 'off',
+                    door_8_close: 'off',
+                    all_asd_close: 'off',
+                    fully_open: 'on'
+                }
+            },
+            {
+                id: 's3_3',
+                title: '按壓按鈕 3 (蜂鳴器) 發出關門警告',
+                type: 'action',
+                controlId: 'buzzer_btn',
+                successMessage: '🔔 [步驟 3 正確] 蜂鳴器作動完畢！請將旋鈕 1、旋鈕 2 轉回關閉。',
+                wrongActionHint: '❌ [錯誤] 關門前，必須先按壓「按鈕 3 (蜂鳴器)」發出警告！',
+                lightChanges: {
+                    open_indicator: 'on'
+                }
+            },
+            {
+                id: 's3_4',
+                title: '將旋鈕 1 與旋鈕 2 轉回關閉月台門',
+                type: 'state_match',
+                conditions: [
+                    { controlId: 'knob_cmd_1', value: 'off' },
+                    { controlId: 'knob_cmd_2', value: 'off' }
+                ],
+                successMessage: '✅ [操作成功] 車門已順利關閉並閉鎖，操作 3 結束！請復原系統。',
+                wrongActionHint: '❌ [錯誤] 請將「旋鈕 1」與「旋鈕 2」同時轉回關閉位置！',
+                lightChanges: {
+                    door_1_close: 'on',
+                    door_2_close: 'on',
+                    door_3_close: 'on',
+                    door_4_close: 'on',
+                    door_5_close: 'on',
+                    door_6_close: 'on',
+                    door_7_close: 'on',
+                    door_8_close: 'on',
+                    all_asd_close: 'on',
+                    fully_open: 'off',
+                    open_indicator: 'off'
+                }
+            }
+        ]
+    },
+    {
+        id: 'door3_cutout_demo',
+        title: '操作 4 (範例)：3號門故障閃爍，執行單門隔離 (CUTOUT)',
+        description: '⚠️ [範例劇本] 3號自動門故障紅燈閃爍且未閉鎖！請測試燈號後將 3號門切換至 CUTOUT。',
+        successMessage: '✅ [操作成功] 3號自動門已完成隔離，全門閉鎖迴路恢復正常！',
+        initialLights: {
+            door_3_close: 'off',
+            door_3_fault: 'blink',
+            all_asd_close: 'off'
+        },
+        steps: [
+            {
+                id: 's4_1',
+                title: '執行燈號測試 (Lamp Test) 確認故障',
+                type: 'action',
+                controlId: 'lamp_test',
+                successMessage: '💡 [步驟 1 正確] 已確認 3號門真實故障！請將「自動門 3 切換旋鈕」轉至 CUTOUT。',
+                wrongActionHint: '❌ [錯誤] 請先點擊「燈號測試鈕 (LAMP TEST)」確認燈號狀態！',
+                lightChanges: {}
+            },
+            {
+                id: 's4_2',
+                title: '將自動門 3 切換旋鈕轉至 CUTOUT',
+                type: 'state_match',
+                conditions: [
+                    { controlId: 'door_3_cutout', value: 'on' }
+                ],
+                successMessage: '✅ [操作成功] 3號自動門已完成隔離 (CUTOUT)，系統閉鎖恢復正常！',
+                wrongActionHint: '❌ [錯誤] 請轉動左側第 3 排的「自動門 3 切換旋鈕 (CUTOUT / AUTO)」！',
+                lightChanges: {
+                    door_3_fault: 'on',
+                    all_asd_close: 'on'
+                }
+            }
+        ]
+    }
+];

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>文湖線月台門訓練機 V5.0 (後台可編排練習版)</title>
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+
+    <!-- 頂部控制與狀態列 -->
+    <header class="top-control-bar">
+        <div class="instructor-row">
+            <select id="scenario-selector" aria-label="選擇模擬狀況"></select>
+            <div class="btn-group">
+                <button type="button" class="btn-action" id="btn-trigger">發送狀況</button>
+                <button type="button" class="btn-action green" id="btn-reset">系統復原</button>
+                <button type="button" class="btn-action blue" id="btn-hint" title="查看目前步驟提示">💡 提示</button>
+                <button type="button" class="btn-action dark icon-only" id="btn-mute" title="音效已開啟（點擊靜音）">🔊</button>
+                <button type="button" class="btn-action dark" id="btn-open-admin">⚙️ 教官後台</button>
+            </div>
+        </div>
+        <div class="status-row level-normal" id="status-container">
+            <span id="status-text">🟢 系統正常，列車待命中。</span>
+            <span id="step-progress-badge" class="step-progress-badge idle">自由模式</span>
+            <div class="hold-progress-track">
+                <div class="hold-progress-fill" id="hold-progress-fill"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 硬體面板主區 -->
+    <main class="panel-wrapper">
+        <div class="hardware-panel" id="panel-container" oncontextmenu="return false;">
+            <!-- 由 app.js 動態渲染全部 44 個互動硬體元件 -->
+        </div>
+    </main>
+
+    <!-- 教官後台管理介面 (免寫程式編輯劇本) -->
+    <section class="admin-modal" id="admin-modal" aria-label="教官後台管理">
+        <div class="admin-topbar">
+            <div class="admin-topbar-title">
+                <span>⚙️ 教官後台 — 模擬劇本管理系統</span>
+            </div>
+            <div class="admin-topbar-actions">
+                <button type="button" class="btn-admin success" id="btn-admin-save">💾 本機儲存</button>
+                <button type="button" class="btn-admin cloud" id="btn-admin-publish" title="直接將題庫發布到 GitHub，讓所有手機自動同步">☁️ 發布到網路</button>
+                <button type="button" class="btn-admin primary" id="btn-admin-export" title="下載 scenarios.json 備份檔">📥 下載 JSON</button>
+                <button type="button" class="btn-admin" id="btn-admin-import">📤 匯入 JSON</button>
+                <button type="button" class="btn-admin warning" id="btn-admin-reset-default" title="清除本機草稿並重新載入雲端最新題庫">🔄 同步雲端</button>
+                <button type="button" class="btn-admin danger" id="btn-close-admin">✕ 關閉返回面板</button>
+                <input type="file" id="input-import-json" accept=".json,application/json" style="display:none;">
+            </div>
+        </div>
+
+        <div class="admin-body">
+            <aside class="admin-sidebar">
+                <div class="admin-sidebar-header">
+                    <strong>模擬劇本清單</strong>
+                    <button type="button" class="btn-admin success" id="btn-admin-add">＋ 新增劇本</button>
+                </div>
+                <div class="admin-scenario-list" id="admin-scenario-list"></div>
+            </aside>
+
+            <div class="admin-editor-pane" id="admin-editor-pane"></div>
+        </div>
+
+        <!-- GitHub 雲端發布彈窗 -->
+        <div class="publish-dialog-backdrop" id="publish-dialog">
+            <div class="publish-dialog">
+                <div class="publish-dialog-header">
+                    <h3>☁️ 發布題庫到 GitHub（全體手機自動同步）</h3>
+                    <button type="button" class="mini-btn danger" id="btn-close-publish">✕</button>
+                </div>
+                <p class="section-hint">首次在此裝置發布請填入 GitHub 教官金鑰（Token），系統會僅儲存在您的本機瀏覽器中，不會外洩。發布後約 30 秒內全體手機重整即可同步。</p>
+                <div class="form-grid-2">
+                    <div class="form-row">
+                        <label>GitHub 帳號 (Owner)</label>
+                        <input type="text" id="gh-owner" placeholder="例如：your-github-id">
+                    </div>
+                    <div class="form-row">
+                        <label>專案名稱 (Repository)</label>
+                        <input type="text" id="gh-repo" placeholder="例如：PDCP">
+                    </div>
+                </div>
+                <div class="form-grid-2">
+                    <div class="form-row">
+                        <label>分支名稱 (Branch)</label>
+                        <input type="text" id="gh-branch" value="main" placeholder="main">
+                    </div>
+                    <div class="form-row">
+                        <label>題庫檔案路徑</label>
+                        <input type="text" id="gh-path" value="scenarios.json" placeholder="scenarios.json">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label>教官發布金鑰 (GitHub Personal Access Token)</label>
+                    <input type="password" id="gh-token" placeholder="貼上 github_pat_... 或 ghp_...">
+                </div>
+                <div class="publish-status-box" id="publish-status-box"></div>
+                <div class="publish-dialog-actions">
+                    <button type="button" class="btn-admin" id="btn-gh-clear-token">🗑️ 清除本機金鑰</button>
+                    <button type="button" class="btn-admin cloud" id="btn-gh-confirm-publish">🚀 立即發布最新題庫</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-toast" id="admin-toast"></div>
+    </section>
+
+    <script src="./components.js"></script>
+    <script src="./default-scenarios.js"></script>
+    <script src="./github-sync.js"></script>
+    <script src="./engine.js"></script>
+    <script src="./admin.js"></script>
+    <script src="./app.js"></script>
+</body>
+</html>
