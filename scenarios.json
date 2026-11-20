@@ -14,8 +14,14 @@
         "title": "切換鑰匙至手動，並開啟 SD Bypass 旋鈕",
         "type": "state_match",
         "conditions": [
-          { "controlId": "key_mode", "value": "on" },
-          { "controlId": "sd_bypass_knob", "value": "on" }
+          {
+            "controlId": "key_mode",
+            "value": "on"
+          },
+          {
+            "controlId": "sd_bypass_knob",
+            "value": "on"
+          }
         ],
         "successMessage": "🔧 [步驟 1 正確] 鑰匙已切手動且 SD 旋鈕已轉至 ON，請持續按壓黃色 SD Bypass 按鈕 3 秒！",
         "wrongActionHint": "❌ [錯誤] 請先將鑰匙切換至「手動 (MANUAL)」，並開啟「SD Bypass 紅旋鈕」！",
@@ -79,7 +85,10 @@
         "title": "將鑰匙切換至手動模式 (MANUAL)",
         "type": "state_match",
         "conditions": [
-          { "controlId": "key_mode", "value": "on" }
+          {
+            "controlId": "key_mode",
+            "value": "on"
+          }
         ],
         "successMessage": "🔧 [步驟 1 正確] 鑰匙已切換至手動。請同時轉動旋鈕 1、旋鈕 2 開啟車門。",
         "wrongActionHint": "❌ [錯誤] 開門前，必須先將鑰匙轉至「手動 (MANUAL)」模式！",
@@ -90,8 +99,14 @@
         "title": "同時轉動旋鈕 1 與旋鈕 2 開啟月台門",
         "type": "state_match",
         "conditions": [
-          { "controlId": "knob_cmd_1", "value": "on" },
-          { "controlId": "knob_cmd_2", "value": "on" }
+          {
+            "controlId": "knob_cmd_1",
+            "value": "on"
+          },
+          {
+            "controlId": "knob_cmd_2",
+            "value": "on"
+          }
         ],
         "successMessage": "✅ [步驟 2 正確] 月台門已全數開啟！關門前請按壓按鈕 3 (蜂鳴器) 警告旅客。",
         "wrongActionHint": "❌ [錯誤] 請同時將「旋鈕 1」與「旋鈕 2」轉至開啟位置！",
@@ -124,8 +139,14 @@
         "title": "將旋鈕 1 與旋鈕 2 轉回關閉月台門",
         "type": "state_match",
         "conditions": [
-          { "controlId": "knob_cmd_1", "value": "off" },
-          { "controlId": "knob_cmd_2", "value": "off" }
+          {
+            "controlId": "knob_cmd_1",
+            "value": "off"
+          },
+          {
+            "controlId": "knob_cmd_2",
+            "value": "off"
+          }
         ],
         "successMessage": "✅ [操作成功] 車門已順利關閉並閉鎖，操作 3 結束！請復原系統。",
         "wrongActionHint": "❌ [錯誤] 請將「旋鈕 1」與「旋鈕 2」同時轉回關閉位置！",
@@ -170,7 +191,10 @@
         "title": "將自動門 3 切換旋鈕轉至 CUTOUT",
         "type": "state_match",
         "conditions": [
-          { "controlId": "door_3_cutout", "value": "on" }
+          {
+            "controlId": "door_3_cutout",
+            "value": "on"
+          }
         ],
         "successMessage": "✅ [操作成功] 3號自動門已完成隔離 (CUTOUT)，系統閉鎖恢復正常！",
         "wrongActionHint": "❌ [錯誤] 請轉動左側第 3 排的「自動門 3 切換旋鈕 (CUTOUT / AUTO)」！",
