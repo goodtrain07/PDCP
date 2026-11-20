@@ -18,8 +18,28 @@
         return `<div class="label-text">${zh}<br><span class="label-eng">${en}</span></div>`;
     }
 
-    /** 取得線上網站最新題庫 (scenarios.json)，若為離線 file:// 則退回內建預設 */
+    /** 取得線上網站最新題庫：優先透過 GitHub API 即時讀取（發布後免等 Pages 建置），失敗再退回 ./scenarios.json */
     async function fetchSiteDefaultScenarios() {
+        const isHttp = window.location.protocol === 'http:' || window.location.protocol === 'https:';
+        if (isHttp && window.location.hostname.endsWith('.github.io')) {
+            try {
+                const apiRes = await fetch(
+                    `https://api.github.com/repos/goodtrain07/PDCP/contents/scenarios.json?ref=main&t=${Date.now()}`,
+                    {
+                        headers: { 'Accept': 'application/vnd.github.raw+json' },
+                        cache: 'no-store'
+                    }
+                );
+                if (apiRes.ok) {
+                    const data = await apiRes.json();
+                    if (Array.isArray(data) && data.length > 0) {
+                        return { data, fromRemote: true };
+                    }
+                }
+            } catch (e) {
+                // 若 API 限流或失敗，自動退回同站靜態 scenarios.json
+            }
+        }
         try {
             const res = await fetch(`./scenarios.json?t=${Date.now()}`, { cache: 'no-store' });
             if (res.ok) {
